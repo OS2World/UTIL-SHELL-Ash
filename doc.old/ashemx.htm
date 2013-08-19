@@ -1,0 +1,164 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Author" CONTENT="Juan Jose Garcia Ripoll">
+   <TITLE>BSD Ash-0.2 for EMX</TITLE>
+</HEAD>
+<BODY>
+
+<H1><A HREF="index.htm">Berkley Ash-0.2 for EMX</A></H1>
+
+<H2><a name="index">Table of contents</A></H2>
+
+<UL>
+<LI><A HREF="#index">Table of contents</A>
+<LI><A HREF="#intro">Introduction to Ash</A>
+<LI><A HREF="#inst">Installing Ash</A>
+<LI><A HREF="#features">Features of Ash</A>
+<LI><A HREF="#get">Getting Ash</A>
+</UL>
+
+<H2><a name="intro"><A HREF="ashemx.htm#index">Introduction</A></A></H2>
+
+<P>Ash is a small shell which resembles the System V `sh'. Its power
+resides in its size and its compatibility:
+
+<UL>
+<LI>It's about 66k (less than half the size of the Korn Shell), so it eats
+less memory when it forks itself to run other commands.
+
+<LI>It's sh-compatible -- I use it to run `configure' scripts, and as a
+complement to `make'.
+
+<LI>It only uses simple file read/write operations, no termcap, no ioctl,
+no termio. Thus it works nicely under Xterm.
+
+<LI>I maintain it myself together with Autoconf. This way I try to keep a
+`porting package' up to date -- whenever I find a new feature in Autoconf's
+scripts that confuses Ash, I put myself to work to fix it.
+</UL>
+
+<P>However, you should notice the following points before downloading Ash:
+
+<UL>
+<LI>Ash forks itself to run commands. Thus Ash <EM>does not work on DOS</EM>,
+and OS/2 or NT are needed.
+
+<LI>Ash <EM>should</EM> work with RSXNT but I <EM>could not</EM> test
+it due to the lack of an appropiate environment. For instance, you might need
+to fix <tt>`makefile.os2'</tt>, as it uses the -Zcrtdll option to make
+Ash smaller (64k) and I'm not sure whether RSX supports it.
+</UL>
+
+<H2><a name="inst"><A HREF="ashemx.htm#index">Installation</A></A></H2>
+
+<P>Now, let's proceed with the installation.
+
+<P>Ash is compiled with the EMX library and tools. It's a binded executable
+so you'll need to install at least the EMX or the RSXNT runtime environments.
+They can be reached both in Leo (ftp.leo.org, www.leo.org) and Hobbes
+(hobbes.nmsu.edu).
+
+<P>Ash may reside in any directory that is mentioned in the PATH variable.
+You must make sure that Ash is the shell that get's executed when you
+simply type <TT>sh.exe</TT> on the command line -- if you have the
+<TT>sh.exe</TT> Korn Shell active, you may loose some of Ash's functionality.
+
+<P>Currently Ash is configured to act as a login shell when invoked with
+the `-l' option: then it reads <TT>$INIT/profile</TT> (or <TT>$ETC/profile</TT>
+or <TT>/etc/profile</TT>) and <TT>$HOME/profile</TT> (or
+<TT>/home/profile</TT>). The lack of any or both of these files causes no
+error condition, and these files are not processed unless the `-l' option
+is used.
+
+<P>There are some useful scripts in the <tt>./funcs</tt> directory. You're
+free to place them anywhere, as they're not executable files.
+
+<H2><a name="features"><A HREF="#index">Features</A></A></H2>
+
+<P>OK, nobody's perfect and me less than anyone else. I <TT>know</TT> the
+previous releases of Ash did have bugs, but I was so excited to get such a
+simple and easy to port shell that... Well you know.
+
+<P>Here are the most important bugs fixed since the last patch release:
+
+<UL>
+<LI>Added support for <TT>*.cmd</TT> and <TT>*.com</TT> files.
+<LI>Fixed a few bugs in the program search algorithm. Now it works as stated
+in this document.
+</UL>
+
+<P>Here's a summary of known bugs and features that Ash has or lacks when
+compared to other sh-shells:
+
+<UL>
+<LI>Background processes work more or less as expected: they stay in the
+same session and output to the same screen as the shell. This is the way
+things work under Unix and is pretty nice for running programs under X.
+However, under OS/2 there are programs that access the video/keyboard
+hardware directly and thus mess the session: for instance, try
+<tt>"tedit &"</tt> from within Ash --it will cause the editor to pop up, but
+the editor will not grab the input until you first enter one command to
+the shell.
+
+<LI>EMX's function <tt>exec</tt> doesn't choose the appropiate mode for
+PM programs and thus they cannot be run from within Ash. You should define
+a <tt>start</tt> function
+<PRE>
+	start() { cmd.exe /c start $* }
+</PRE>
+add it to your profile ($HOME/profile, $INIT/profile, etc), and use it with
+PM programs.
+
+<LI>Currently, <TT>~</TT> is not substituted by <TT>$HOME</TT>.
+
+<LI>No <TT>PWD</TT> is defined. This may cause some problems with scripts that
+assume it has some value. However, up to date I've found none -- most of
+scripts use the <TT>`pwd'</TT> command instead and this one <EM>is</EM>
+already in Ash.
+
+<LI>Ash has several built in commands that take precedence over external ones.
+The search for programs follows this rules:
+
+<UL>
+<LI>If the program has an extension (<tt>EXE</tt>, <tt>COM</tt>...) no one
+is added and Ash looks for that name in $PATH.
+<LI>If the program has no extension, the precedence is: [builtin] &gt;
+exe &gt; com &gt; cmd &gt [no extension].
+</UL>
+
+<P>As you see, to avoid using a built in command you have to explicit the
+program extension, i.e., <tt>echo.exe</tt> would look for GNU echo and
+execute it, or fail if not found.
+
+<LI><TT>echo</TT> is a built-in command and understands both <TT>`-e'</TT>
+and  <TT>`-E'</TT> options, assuming they have the same meaning. This differs
+from GNU <TT>echo</TT>, which ignores <TT>`-e'</TT>.
+
+<LI>There's a plethora of small builtin commands that still have to be
+tested (For instance <TT>`test'</TT> is one <TT>:)</TT>.
+
+<LI>Support for mail checks is conditionally decompiled to make the program
+smaller. Have a look at <TT>`shell.h'</TT> to see what is out.
+</UL>
+
+<H2><a name="get"><A HREF="#index">Getting it</A></A></H2>
+
+<P>If you're lucky and I could find space enough to upload it, Ash
+should be together with these HTML scripts:<A
+HREF="ash-0.2-4-emx.zip">this is the zip file (over
+220k)</A>
+
+<P>Ash should alse be in <A HREF="ftp://hobbes.nmsu.edu/pub/os">Hobbes</A> and
+in <A HREF="http://www.leo.org/archiv/os2/">Leo</A>, but those copies may
+be outdated (Check the "incoming" sections or directories for new copies I
+migh have uploaded to the servers).
+
+<UL>
+<LI>Go up: <A HREF="index.htm">Main index</A>
+
+<LI>Maintainer: <A HREF="mailto:worm@arrakis.es">Juan Jose Garcia Ripoll
+&lt;worm@arrakis.es></A>
+</UL>
+</BODY>
+</HTML>

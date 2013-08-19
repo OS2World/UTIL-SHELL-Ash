@@ -1,0 +1,109 @@
+0.2-0
+-----
+
+*	cd.c was broken -- it used chdir() under __EMX__, which currently
+	does not change drive units, and used program "pwd" to get process
+	directory, which is not needed. So, whole cd.c has been fixed and
+	improved.
+
++	Bug detected: executing commands (such as tedit.exe) that make use
+	of direct kbd*, vio* calls causes some rather nasty results: the
+	shell takes control of input until the first command is entered
+	and then the background child process grabs the console.
+
+*	Added `-l' option for login shells -- when used, ash reads
+	$INIT/profile and $HOME/profile. If the INIT environment variable
+	is not set it tries $ETC. If any of those profiles does not exist,
+	no error is caused. This implied changes in options.h, options.c
+	and main.c
+
+*	Added `-Zcrtdll' option in `makefile.os2' to make the executable
+	even smaller.
+
+*	Mail support conditionally decompiled using MAIL_SUPPORT macro.
+
+0.2-1
+-----
+
+*	Added support for both types of slashes ('/','\\') and colon (':')
+	in path names via some macros (IS_SLASH, SLASH, IS_PATH_SEP, etc)
+	and one function (has_dir_sep()). This support is conditionally
+	compiled -- it's off when DOS_PATHS is defined to be 0. It implied
+	changes in sh.h and in most other files.
+
+*	in redir.c, in here-docs redirection, the routine does not rely on
+	the pipe having a buffer, but instead it always forks itself to
+	write on the pipe.
+
+*	When invoking itself as shell, use "sh" instead of "/bin/sh"
+
+*	In error.c, use strerror() to get error messages, not a static array.
+
+*	In exec.c, added a wrapper for shellexec(): the old version is
+	renamed as _shellexec() and it's invoked once with the name of
+	the program, and (if that failed) a second time with the name
+	plus '.exe'.
+
+*	In exec.c, added a wrapper for find_command(): much like shellexec()
+	it's renamed _find_command() and invoked twice -- one with the name
+	plus '.exe' and a second time without extension.
+
+*	In exec.c, shellexec() and find_command() made more clever: '.exe'
+	extension is only added when it was not present.
+
+*	In exec.c tryexec() smarter and faster: first it checks if the file
+	exists with access() and only then it tries to execute it. Also,
+	under __EMX__, failure of exec() is unconditionally interpreted
+	as existance of script -- exec's errno are not what unix-ash
+	would expect.
+
+*	In exec.c, find_command() improved: no stat() function is used in
+	little OS/2, but instead access().
+
+*	In jobs.c, all references to sys_siglist[] are removed, as __EMX__
+	doesn't have it: ash only displays dumb messages "Signal %d raised"
+
+*	In main.c, exit() function removed.
+
+*	In miscbltin.c, use of setmode() and getmode() removed.
+
+*	In mkbltins.c, use of link()+unlink() substituted by one rename()
+
+*	In output.{c,h}, void flushall() -> int flushall() to avoid conflicts
+	when importing "stdio.h" header.
+
+*	In trap.c, as sig_t does not exist, declaration of (*sigact) had
+	to be modified.
+
+*	In echo.c, '-E' added.
+
+*	In test.c, some tests are conditionally uncompiled, depending on the
+	existance or not of the equivalent stat-flags (S_IFBLK and S_ISVTX)
+
+0.2-2
+-----
+
+*	In exec.c, added support for '.exe', '.cmd', etc
+
+0.2-3
+-----
+
+*	In main.c, added profile support.
+
+*	In exec.c, fixed program search (tryexec, shellexec, find_command)
+
+0.2-4
+-----
+
+*	Added ashemx.in.htm, with macros, and removed ashmex.htm, now
+	automatically generated.
+
+*	In exec.c, fixed program search (tryexec, shellexec, find_command)
+
+*	In echo.c, fixed default behaviour (now slashes are interpreted) and
+	meaning of '-e', '-E' options (they disable slash interpretation).
+
+*	In ashemx.in.htm, added solution to the PM-programs bug --they
+	cannot be launched from within Ash, but a `start' function can
+	be defined that launches them.
+

@@ -1,0 +1,16 @@
+  This is BSD Ash ported to emx/os2. The original port was made by
+Juan Jose Garcia Ripoll <worm@arrakis.es>. The old document is in the doc.old
+directory. I make this new port by applying the modification to the source
+code from FreeBSD. In addition, I fix some small bugs to make it as compatible
+to Unix-sh as possible.
+
+  Some features are turned off to make the binary as small as possible.
+These features are not necessary for running as a shell command interpreter
+for GNU autoconf. The result is a small binary about 77K. The size is less
+than half that of other ported Unix shells.
+
+*** NOTE ***
+  The program name is changed to ash.exe to avoid conflict with Korn shell
+of the perl port. If you use perl/os2, you should NOT change the name to
+sh.exe.
+

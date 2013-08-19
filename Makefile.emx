@@ -1,0 +1,75 @@
+#	@(#)Makefile	8.4 (Berkeley) 5/5/95
+
+PROG=	sh
+OBJS1=	init.o
+OBJS2=	cd.o echo.o error.o eval.o exec.o expand.o \
+	input.o jobs.o main.o memalloc.o miscbltin.o \
+	mystring.o options.o output.o parser.o redir.o show.o \
+	trap.o var.o builtins.o nodes.o syntax.o test.o
+OBJS=	$(OBJS1) $(OBJS2)
+SRCS=	cd.c bltin/echo.c error.c eval.c exec.c expand.c \
+	input.c jobs.c main.c memalloc.c miscbltin.c \
+	mystring.c options.c output.c parser.c redir.c show.c \
+	trap.c var.c builtins.c nodes.c syntax.c bltin/test.c
+
+CC=	gcc
+YACC=	yacc -d
+LEX=	flex -l
+# for debug:
+# CFLAGS+= -g -DDEBUG=2
+CFLAGS=	-O2 -m486 -fno-strength-reduce -DSHELL -I.
+LDFLAGS=-s -Zcrtdll -Zsysv-signals
+
+CLEAN_FILES = arith.c arith_lex.c builtins.c builtins.h init.c \
+	nodes.c nodes.h syntax.c syntax.h token.h y.tab.h \
+	mkinit.exe mknodes.exe mksyntax.exe
+
+all: ash.exe
+
+ash.exe: $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+
+builtins.c builtins.h: mkbuiltins builtins.def
+	sh mkbuiltins .
+
+init.c: mkinit.exe $(SRCS)
+	mkinit $(SRCS)
+
+nodes.c nodes.h: mknodes.exe nodetypes nodes.c.pat
+	mknodes nodetypes nodes.c.pat
+
+syntax.c syntax.h: mksyntax.exe
+	mksyntax
+
+token.h: mktokens
+	sh mktokens
+
+%.exe: %.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
+
+echo.o: bltin/echo.c
+	$(CC) -c -o $@ $(CFLAGS) $<
+test.o: bltin/test.c
+	$(CC) -c -o $@ $(CFLAGS) $<
+
+clean:
+	rm -f core *.o $(CLEAN_FILES)
+
+# Rules for object files that rely on generated headers.
+arith_lex.o: y.tab.h
+cd.o: nodes.h
+eval.o: builtins.h nodes.h syntax.h
+exec.o: builtins.h nodes.h syntax.h
+expand.o: nodes.h syntax.h
+input.o: syntax.h
+jobs.o: nodes.h syntax.h
+main.o: nodes.h
+mystring.o: syntax.h
+options.o: nodes.h
+output.o: syntax.h
+parser.o: nodes.h syntax.h token.h
+redir.o: nodes.h
+show.o: nodes.h
+trap.o: nodes.h syntax.h
+var.o: nodes.h syntax.h
+
